@@ -23,6 +23,7 @@ import CleanerDashboard from './pages/cleaner/CleanerDashboard';
 import CleanerBookings from './pages/cleaner/CleanerBookings';
 import CleanerProfileEdit from './pages/cleaner/CleanerProfileEdit';
 import CleanerEarnings from './pages/cleaner/CleanerEarnings';
+import ClientProfileEdit from './pages/client/ClientProfileEdit';
 import NotFoundPage from './pages/NotFoundPage';
 
 function AppContent() {
@@ -49,6 +50,7 @@ function AppContent() {
             <Route path="/client/dashboard" element={<ClientDashboard />} />
             <Route path="/client/bookings" element={<ClientBookings />} />
             <Route path="/client/favorites" element={<ClientFavorites />} />
+            <Route path="/client/profile" element={<ClientProfileEdit />} />
           </Route>
 
           {/* Cleaner only */}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, User, MapPin, Phone, Mail } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useApp } from '../../hooks/useApp';
 import Input from '../../components/ui/Input';
@@ -43,20 +43,8 @@ export default function ClientProfileEdit() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="First Name"
-              value={firstName}
-              onChange={e => setFirstName(e.target.value)}
-              placeholder="First name"
-              icon={<User size={16} className="text-gray-400" />}
-            />
-            <Input
-              label="Last Name"
-              value={lastName}
-              onChange={e => setLastName(e.target.value)}
-              placeholder="Last name"
-              icon={<User size={16} className="text-gray-400" />}
-            />
+            <Input label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" />
+            <Input label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" />
           </div>
         </div>
 
@@ -64,29 +52,9 @@ export default function ClientProfileEdit() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Details</h2>
           <div className="space-y-4">
-            <Input
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              icon={<Mail size={16} className="text-gray-400" />}
-            />
-            <Input
-              label="Phone Number"
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="+1 (555) 000-0000"
-              icon={<Phone size={16} className="text-gray-400" />}
-            />
-            <Input
-              label="Location"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="City, State"
-              icon={<MapPin size={16} className="text-gray-400" />}
-            />
+            <Input label="Email Address" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" />
+            <Input label="Phone Number" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" />
+            <Input label="Location" value={location} onChange={e => setLocation(e.target.value)} placeholder="City, State" />
           </div>
         </div>
 

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, ShieldCheck, Shield, Star, Clock, Briefcase, Globe, ArrowLeft, Heart, CalendarCheck } from 'lucide-react';
+import { MapPin, ShieldCheck, Shield, Star, Clock, Briefcase, Globe, ArrowLeft, Heart, CalendarCheck, MessageCircle, Send } from 'lucide-react';
 import { getProfiles, getUsers, getReviews } from '../utils/storage';
 import type { CleanerListing } from '../types';
 import { formatCentsShort, getBadgeLabel, getBadgeColorClasses, getServiceLabel } from '../utils/formatters';
@@ -10,13 +11,18 @@ import Avatar from '../components/ui/Avatar';
 import StarRating from '../components/ui/StarRating';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
+import { TextArea } from '../components/ui/Input';
 import ReviewCard from '../components/reviews/ReviewCard';
 
 export default function CleanerProfilePage() {
   const { cleanerId } = useParams<{ cleanerId: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { isFavorite, toggleFavorite } = useApp();
+  const { isFavorite, toggleFavorite, showToast } = useApp();
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactMsg, setContactMsg] = useState('');
+  const [sendingMsg, setSendingMsg] = useState(false);
 
   const profiles = getProfiles();
   const users = getUsers();
@@ -39,6 +45,16 @@ export default function CleanerProfilePage() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   const favorited = isFavorite(user.id);
+
+  const handleSendMessage = async () => {
+    if (!contactMsg.trim()) return;
+    setSendingMsg(true);
+    await new Promise(r => setTimeout(r, 500));
+    setSendingMsg(false);
+    setContactOpen(false);
+    setContactMsg('');
+    showToast(`Message sent to ${user.firstName}!`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -223,19 +239,33 @@ export default function CleanerProfilePage() {
               </div>
 
               {currentUser?.role === 'client' ? (
-                <Link to={`/book/${user.id}`}>
-                  <Button variant="primary" size="lg" className="w-full">
-                    Book Now
+                <div className="space-y-3">
+                  <Link to={`/book/${user.id}`}>
+                    <Button variant="primary" size="lg" className="w-full">
+                      Book Now
+                    </Button>
+                  </Link>
+                  <Button variant="secondary" size="lg" className="w-full" onClick={() => setContactOpen(true)}>
+                    <MessageCircle size={16} />
+                    Contact {user.firstName}
                   </Button>
-                </Link>
+                </div>
               ) : currentUser?.role === 'cleaner' ? (
                 <p className="text-xs text-center text-gray-400">Log in as a client to book</p>
               ) : (
-                <Link to="/login" state={{ returnUrl: `/book/${user.id}` }}>
-                  <Button variant="primary" size="lg" className="w-full">
-                    Login to Book
-                  </Button>
-                </Link>
+                <div className="space-y-3">
+                  <Link to="/login" state={{ returnUrl: `/book/${user.id}` }}>
+                    <Button variant="primary" size="lg" className="w-full">
+                      Login to Book
+                    </Button>
+                  </Link>
+                  <Link to="/login">
+                    <Button variant="secondary" size="lg" className="w-full">
+                      <MessageCircle size={16} />
+                      Send a Message
+                    </Button>
+                  </Link>
+                </div>
               )}
 
               {!currentUser && (
@@ -248,6 +278,46 @@ export default function CleanerProfilePage() {
           </div>
         </aside>
       </div>
+
+      {/* Contact Modal */}
+      <Modal
+        isOpen={contactOpen}
+        onClose={() => { setContactOpen(false); setContactMsg(''); }}
+        title={`Message ${user.firstName}`}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+            <Avatar src={user.avatarUrl} firstName={user.firstName} lastName={user.lastName} size="md" />
+            <div>
+              <p className="font-medium text-gray-900 text-sm">{user.firstName} {user.lastName}</p>
+              <p className="text-xs text-gray-500">{user.location}</p>
+            </div>
+          </div>
+          <TextArea
+            label="Your message"
+            value={contactMsg}
+            onChange={e => setContactMsg(e.target.value)}
+            placeholder={`Hi ${user.firstName}, I'm interested in booking your services...`}
+            rows={4}
+          />
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => { setContactOpen(false); setContactMsg(''); }} className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSendMessage}
+              isLoading={sendingMsg}
+              disabled={!contactMsg.trim()}
+              className="flex-1"
+            >
+              <Send size={15} />
+              Send Message
+            </Button>
+          </div>
+          <p className="text-xs text-center text-gray-400">Demo mode — message is simulated</p>
+        </div>
+      </Modal>
     </div>
   );
 }

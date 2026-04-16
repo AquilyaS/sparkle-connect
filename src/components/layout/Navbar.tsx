@@ -98,6 +98,12 @@ export default function Navbar() {
                         Edit Profile
                       </Link>
                     )}
+                    {currentUser.role === 'client' && (
+                      <Link to="/client/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                        <UserIcon size={16} />
+                        My Profile
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
@@ -156,6 +162,18 @@ export default function Navbar() {
                     <LayoutDashboard size={16} />
                     Dashboard
                   </Link>
+                  {currentUser.role === 'client' && (
+                    <Link to="/client/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                      <UserIcon size={16} />
+                      My Profile
+                    </Link>
+                  )}
+                  {currentUser.role === 'cleaner' && (
+                    <Link to="/cleaner/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                      <UserIcon size={16} />
+                      Edit Profile
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors"

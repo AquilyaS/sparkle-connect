@@ -6,6 +6,7 @@ interface AppContextType {
   toast: ToastMessage | null;
   favorites: string[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  dismissToast: () => void;
   toggleFavorite: (cleanerId: string) => void;
   isFavorite: (cleanerId: string) => boolean;
 }
@@ -39,10 +40,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const dismissToast = useCallback(() => setToast(null), []);
+
   const isFavorite = useCallback((cleanerId: string) => favorites.includes(cleanerId), [favorites]);
 
   return (
-    <AppContext.Provider value={{ toast, favorites, showToast, toggleFavorite, isFavorite }}>
+    <AppContext.Provider value={{ toast, favorites, showToast, dismissToast, toggleFavorite, isFavorite }}>
       {children}
     </AppContext.Provider>
   );

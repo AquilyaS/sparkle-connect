@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Save } from 'lucide-react';
+import { Save, Camera, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { ServiceType, DayOfWeek } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useApp } from '../../hooks/useApp';
@@ -7,6 +8,7 @@ import { getProfiles, saveProfiles } from '../../utils/storage';
 import { getDayOrder, getDayFullName } from '../../utils/dateHelpers';
 import Input, { TextArea } from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import Avatar from '../../components/ui/Avatar';
 
 const ALL_SERVICES: { type: ServiceType; label: string; defaultDuration: number; defaultPrice: number }[] = [
   { type: 'regular', label: 'Regular Cleaning', defaultDuration: 2, defaultPrice: 8000 },
@@ -116,6 +118,46 @@ export default function CleanerProfileEdit() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Profile header card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div className="flex items-center gap-5">
+          {/* Avatar with camera overlay */}
+          <div className="relative flex-shrink-0">
+            <Avatar
+              src={currentUser.avatarUrl}
+              firstName={currentUser.firstName}
+              lastName={currentUser.lastName}
+              size="xl"
+            />
+            <button
+              type="button"
+              onClick={() => showToast('Photo upload coming soon')}
+              className="absolute bottom-0 right-0 bg-teal-600 hover:bg-teal-700 text-white rounded-full p-1.5 shadow transition-colors"
+              aria-label="Upload photo"
+            >
+              <Camera size={14} />
+            </button>
+          </div>
+
+          {/* Name, location, and public profile link */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-gray-900 truncate">
+              {currentUser.firstName} {currentUser.lastName}
+            </h2>
+            {currentUser.location && (
+              <p className="text-sm text-gray-500 mt-0.5 truncate">{currentUser.location}</p>
+            )}
+            <Link
+              to={`/cleaners/${currentUser.id}`}
+              className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+            >
+              View Public Profile
+              <ExternalLink size={13} />
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">Edit Profile</h1>
 
       <div className="space-y-6">

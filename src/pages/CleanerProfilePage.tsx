@@ -126,6 +126,28 @@ export default function CleanerProfilePage() {
             </div>
           </div>
 
+          {/* Quick Stats Bar */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+              <div className="flex flex-col items-center text-center pb-4 sm:pb-0">
+                <span className="text-2xl font-bold text-teal-700">{profile.averageRating.toFixed(1)}</span>
+                <span className="text-xs text-gray-500 mt-0.5">Avg Rating</span>
+              </div>
+              <div className="flex flex-col items-center text-center pt-4 sm:pt-0 sm:pl-4">
+                <span className="text-2xl font-bold text-gray-900">{profile.totalReviews}</span>
+                <span className="text-xs text-gray-500 mt-0.5">Reviews</span>
+              </div>
+              <div className="flex flex-col items-center text-center pb-4 sm:pb-0 sm:pl-4">
+                <span className="text-2xl font-bold text-gray-900">{profile.totalJobsCompleted}</span>
+                <span className="text-xs text-gray-500 mt-0.5">Jobs Done</span>
+              </div>
+              <div className="flex flex-col items-center text-center pt-4 sm:pt-0 sm:pl-4">
+                <span className="text-2xl font-bold text-gray-900">{profile.yearsExperience}</span>
+                <span className="text-xs text-gray-500 mt-0.5">Yrs Experience</span>
+              </div>
+            </div>
+          </div>
+
           {/* Bio */}
           {profile.bio && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

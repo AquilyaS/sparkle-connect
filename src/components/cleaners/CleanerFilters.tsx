@@ -14,8 +14,12 @@ const serviceOptions = [
   { value: '', label: 'All Services' },
   { value: 'regular', label: 'Regular Cleaning' },
   { value: 'deep_clean', label: 'Deep Clean' },
-  { value: 'move_in_out', label: 'Move In/Out' },
+  { value: 'vacancy', label: 'Vacancy Cleaning' },
   { value: 'office', label: 'Office Cleaning' },
+  { value: 'specialty', label: 'Specialty Cleaning' },
+  { value: 'event', label: 'Event Cleaning' },
+  { value: 'rental', label: 'Short-term Rental Cleaning' },
+  { value: 'post_construction', label: 'Post-Construction Cleaning' },
 ];
 
 const ratingOptions = [

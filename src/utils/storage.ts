@@ -8,7 +8,7 @@ const KEYS = {
   reviews: 'cm_reviews',
   session: 'cm_session',
   favorites: 'cm_favorites',
-  seeded: 'cm_seeded',
+  seeded: 'cm_seeded_v2',
 };
 
 export { KEYS };
@@ -37,6 +37,8 @@ export function remove(key: string): void {
 
 export function seedIfEmpty(): void {
   if (get<boolean>(KEYS.seeded)) return;
+  // Clear stale data from previous seed versions
+  localStorage.removeItem('cm_seeded');
   set<User[]>(KEYS.users, mockUsers);
   set<CleanerProfile[]>(KEYS.profiles, mockCleanerProfiles);
   set<Booking[]>(KEYS.bookings, mockBookings);

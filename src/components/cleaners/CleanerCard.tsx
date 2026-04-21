@@ -67,11 +67,15 @@ export default function CleanerCard({ cleaner, showFavorite = true }: CleanerCar
 
       {/* Services */}
       <div className="px-4 pb-3 flex flex-wrap gap-1.5 justify-center">
-        {profile.servicesOffered.slice(0, 3).map(s => (
-          <Badge key={s.type} color="teal">
-            {getServiceLabel(s.type)}
-          </Badge>
-        ))}
+        {profile.servicesOffered.slice(0, 3).map(s => {
+          const ServiceIcon = getServiceIcon(s.type);
+          return (
+            <Badge key={s.type} color="teal" className="flex items-center gap-1">
+              <ServiceIcon size={12} />
+              {getServiceLabel(s.type)}
+            </Badge>
+          );
+        })}
       </div>
 
       {/* Cleaner badges */}

@@ -177,7 +177,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 9000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 18000 },
-      { type: 'move_in_out', label: 'Move In/Out', durationHours: 7, basePrice: 26000 },
+      { type: 'vacancy', label: 'Move In/Out', durationHours: 7, basePrice: 26000 },
     ],
     hourlyRate: 5500,
     availability: {
@@ -233,7 +233,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 10000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 20000 },
-      { type: 'move_in_out', label: 'Move In/Out', durationHours: 7, basePrice: 28000 },
+      { type: 'vacancy', label: 'Move In/Out', durationHours: 7, basePrice: 28000 },
       { type: 'office', label: 'Office Cleaning', durationHours: 3, basePrice: 13000 },
     ],
     hourlyRate: 6000,
@@ -317,7 +317,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 11000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 22000 },
-      { type: 'move_in_out', label: 'Move In/Out', durationHours: 8, basePrice: 30000 },
+      { type: 'vacancy', label: 'Move In/Out', durationHours: 8, basePrice: 30000 },
       { type: 'office', label: 'Office Cleaning', durationHours: 3, basePrice: 14000 },
     ],
     hourlyRate: 7000,
@@ -373,7 +373,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 8500 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 4, basePrice: 16000 },
-      { type: 'move_in_out', label: 'Move In/Out', durationHours: 6, basePrice: 24000 },
+      { type: 'vacancy', label: 'Move In/Out', durationHours: 6, basePrice: 24000 },
     ],
     hourlyRate: 5000,
     availability: {
@@ -429,7 +429,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 10000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 4, basePrice: 19000 },
-      { type: 'move_in_out', label: 'Move In/Out', durationHours: 6, basePrice: 27000 },
+      { type: 'vacancy', label: 'Move In/Out', durationHours: 6, basePrice: 27000 },
     ],
     hourlyRate: 6000,
     availability: {
@@ -490,7 +490,7 @@ export const mockBookings: Booking[] = [
     id: 'booking-3',
     clientId: 'client-1',
     cleanerId: 'cleaner-3',
-    serviceType: 'move_in_out',
+    serviceType: 'vacancy',
     scheduledDate: '2026-04-25',
     scheduledTime: '08:00',
     estimatedDurationHours: 7,
@@ -555,7 +555,7 @@ export const mockBookings: Booking[] = [
     id: 'booking-7',
     clientId: 'client-1',
     cleanerId: 'cleaner-6',
-    serviceType: 'move_in_out',
+    serviceType: 'vacancy',
     scheduledDate: '2026-02-10',
     scheduledTime: '08:00',
     estimatedDurationHours: 8,
@@ -747,7 +747,7 @@ export const mockBookings: Booking[] = [
     id: 'booking-19',
     clientId: 'client-2',
     cleanerId: 'cleaner-10',
-    serviceType: 'move_in_out',
+    serviceType: 'vacancy',
     scheduledDate: '2026-04-05',
     scheduledTime: '08:00',
     estimatedDurationHours: 6,

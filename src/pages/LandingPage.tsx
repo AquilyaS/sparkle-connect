@@ -275,6 +275,11 @@ export default function LandingPage() {
 
       {/* CTA Banner */}
       <section className="py-20 bg-gradient-to-r from-teal-600 to-teal-700 text-white">
+      </section>
+      {/* placeholder removed */}
+    </div>
+  );
+}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Book Your First Clean?</h2>
           <p className="text-teal-100 text-lg mb-8 max-w-xl mx-auto">

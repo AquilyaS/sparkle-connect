@@ -22,8 +22,12 @@ export function getServiceLabel(type: ServiceType): string {
   const labels: Record<ServiceType, string> = {
     regular: 'Regular Cleaning',
     deep_clean: 'Deep Clean',
-    move_in_out: 'Move In/Out',
+    vacancy: 'Vacancy Cleaning',
     office: 'Office Cleaning',
+    specialty: 'Specialty Cleaning',
+    event: 'Event Cleaning',
+    rental: 'Short-term Rental Cleaning',
+    post_construction: 'Post-Construction Cleaning',
   };
   return labels[type];
 }

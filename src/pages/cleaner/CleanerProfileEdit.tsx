@@ -13,8 +13,12 @@ import Avatar from '../../components/ui/Avatar';
 const ALL_SERVICES: { type: ServiceType; label: string; defaultDuration: number; defaultPrice: number }[] = [
   { type: 'regular', label: 'Regular Cleaning', defaultDuration: 2, defaultPrice: 8000 },
   { type: 'deep_clean', label: 'Deep Clean', defaultDuration: 4, defaultPrice: 15000 },
-  { type: 'move_in_out', label: 'Move In/Out', defaultDuration: 6, defaultPrice: 22000 },
+  { type: 'vacancy', label: 'Vacancy Cleaning', defaultDuration: 6, defaultPrice: 22000 },
   { type: 'office', label: 'Office Cleaning', defaultDuration: 3, defaultPrice: 12000 },
+  { type: 'specialty', label: 'Specialty Cleaning', defaultDuration: 4, defaultPrice: 16000 },
+  { type: 'event', label: 'Event Cleaning', defaultDuration: 3, defaultPrice: 18000 },
+  { type: 'rental', label: 'Short-term Rental Cleaning', defaultDuration: 2, defaultPrice: 9000 },
+  { type: 'post_construction', label: 'Post-Construction Cleaning', defaultDuration: 8, defaultPrice: 30000 },
 ];
 
 export default function CleanerProfileEdit() {
@@ -31,10 +35,10 @@ export default function CleanerProfileEdit() {
   const [loading, setSaving] = useState(false);
 
   const [selectedServices, setSelectedServices] = useState<Record<ServiceType, boolean>>({
-    regular: true, deep_clean: false, move_in_out: false, office: false,
+    regular: true, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false,
   });
   const [servicePrices, setServicePrices] = useState<Record<ServiceType, string>>({
-    regular: '80', deep_clean: '150', move_in_out: '220', office: '120',
+    regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300',
   });
 
   const [availability, setAvailability] = useState<Record<DayOfWeek, { enabled: boolean; start: string; end: string }>>({
@@ -59,8 +63,8 @@ export default function CleanerProfileEdit() {
     setInsured(profile.insuranceCertified);
     setBgChecked(profile.backgroundChecked);
 
-    const svcMap: Record<ServiceType, boolean> = { regular: false, deep_clean: false, move_in_out: false, office: false };
-    const priceMap: Record<ServiceType, string> = { regular: '80', deep_clean: '150', move_in_out: '220', office: '120' };
+    const svcMap: Record<ServiceType, boolean> = { regular: false, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false };
+    const priceMap: Record<ServiceType, string> = { regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300' };
     profile.servicesOffered.forEach(s => {
       svcMap[s.type] = true;
       priceMap[s.type] = String(s.basePrice / 100);

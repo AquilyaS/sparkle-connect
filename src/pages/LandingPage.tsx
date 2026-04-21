@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award, Briefcase, UserCheck } from 'lucide-react';
 import { getProfiles, getUsers } from '../utils/storage';
 import type { CleanerListing } from '../types';
 import CleanerCard from '../components/cleaners/CleanerCard';
 import Button from '../components/ui/Button';
-import StarRating from '../components/ui/StarRating';
-import Avatar from '../components/ui/Avatar';
 import { formatDisplayDate } from '../utils/dateHelpers';
 
 const testimonials = [
@@ -44,9 +41,6 @@ const services = [
 ];
 
 export default function LandingPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
   const allProfiles = getProfiles();
   const allUsers = getUsers();
   const topCleaners: CleanerListing[] = allProfiles
@@ -58,51 +52,87 @@ export default function LandingPage() {
     }))
     .filter(c => c.user);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/browse${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`);
-  };
-
   return (
     <div>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Find a Trusted Cleaner <span className="text-teal-200">Near You</span>
+      {/* Role Chooser Hero */}
+      <section className="relative bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-10" aria-hidden="true">
+          <div className="absolute -top-20 -left-20 w-96 h-96 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-300 rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-medium text-teal-100 mb-6">
+              <Sparkles size={14} /> Welcome to CleanConnect
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-5">
+              How can we help you today?
             </h1>
-            <p className="text-lg sm:text-xl text-teal-100 mb-8 leading-relaxed">
-              Book verified, insured cleaning professionals in minutes. Transparent pricing, real reviews, and hassle-free scheduling.
+            <p className="text-lg sm:text-xl text-teal-100 max-w-2xl mx-auto leading-relaxed">
+              Choose how you'd like to get started — book a trusted cleaner or offer your services.
             </p>
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mb-10">
-              <div className="relative flex-1">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Enter your city or zip code..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300 shadow-lg"
-                />
+          </div>
+
+          {/* Two big role cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+            <Link
+              to="/register?role=client"
+              className="group bg-white text-gray-900 rounded-2xl p-7 sm:p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <UserCheck size={28} />
               </div>
-              <Button type="submit" size="lg" variant="primary" className="bg-white text-teal-700 hover:bg-teal-50 shadow-lg whitespace-nowrap">
-                Find Cleaners
-              </Button>
-            </form>
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-teal-100">
-              <div className="flex items-center gap-2">
-                <Users size={16} className="text-teal-300" />
-                10,000+ Satisfied Clients
+              <h2 className="text-2xl font-bold mb-2">I'm a Client</h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-5">
+                Find and book verified cleaning professionals near you in minutes.
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-teal-600 font-semibold text-sm group-hover:gap-2.5 transition-all">
+                Get started <ArrowRight size={16} />
+              </span>
+            </Link>
+
+            <Link
+              to="/register?role=cleaner"
+              className="group bg-white text-gray-900 rounded-2xl p-7 sm:p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <Briefcase size={28} />
               </div>
-              <div className="flex items-center gap-2">
-                <Award size={16} className="text-teal-300" />
-                500+ Verified Cleaners
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle size={16} className="text-teal-300" />
-                Same-Day Booking
-              </div>
+              <h2 className="text-2xl font-bold mb-2">I'm a Cleaner</h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-5">
+                Grow your business — set your rates, schedule, and accept bookings.
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-amber-600 font-semibold text-sm group-hover:gap-2.5 transition-all">
+                Start earning <ArrowRight size={16} />
+              </span>
+            </Link>
+          </div>
+
+          {/* Smaller browse option */}
+          <div className="text-center mt-10">
+            <p className="text-sm text-teal-100 mb-3">Not ready to sign up?</p>
+            <Link
+              to="/browse"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium transition-colors backdrop-blur-sm"
+            >
+              <Search size={16} />
+              Just browse cleaners
+            </Link>
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-teal-100 mt-12 pt-8 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-teal-300" />
+              10,000+ Satisfied Clients
+            </div>
+            <div className="flex items-center gap-2">
+              <Award size={16} className="text-teal-300" />
+              500+ Verified Cleaners
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle size={16} className="text-teal-300" />
+              Same-Day Booking
             </div>
           </div>
         </div>

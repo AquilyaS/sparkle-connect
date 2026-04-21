@@ -63,8 +63,8 @@ export default function CleanerProfileEdit() {
     setInsured(profile.insuranceCertified);
     setBgChecked(profile.backgroundChecked);
 
-    const svcMap: Record<ServiceType, boolean> = { regular: false, deep_clean: false, move_in_out: false, office: false };
-    const priceMap: Record<ServiceType, string> = { regular: '80', deep_clean: '150', move_in_out: '220', office: '120' };
+    const svcMap: Record<ServiceType, boolean> = { regular: false, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false };
+    const priceMap: Record<ServiceType, string> = { regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300' };
     profile.servicesOffered.forEach(s => {
       svcMap[s.type] = true;
       priceMap[s.type] = String(s.basePrice / 100);

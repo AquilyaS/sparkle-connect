@@ -177,7 +177,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 9000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 18000 },
-      { type: 'vacancy', label: 'Move In/Out', durationHours: 7, basePrice: 26000 },
+      { type: 'vacancy', label: 'Vacancy Cleaning', durationHours: 7, basePrice: 26000 },
     ],
     hourlyRate: 5500,
     availability: {
@@ -233,7 +233,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 10000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 20000 },
-      { type: 'vacancy', label: 'Move In/Out', durationHours: 7, basePrice: 28000 },
+      { type: 'vacancy', label: 'Vacancy Cleaning', durationHours: 7, basePrice: 28000 },
       { type: 'office', label: 'Office Cleaning', durationHours: 3, basePrice: 13000 },
     ],
     hourlyRate: 6000,
@@ -317,7 +317,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 11000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 5, basePrice: 22000 },
-      { type: 'vacancy', label: 'Move In/Out', durationHours: 8, basePrice: 30000 },
+      { type: 'vacancy', label: 'Vacancy Cleaning', durationHours: 8, basePrice: 30000 },
       { type: 'office', label: 'Office Cleaning', durationHours: 3, basePrice: 14000 },
     ],
     hourlyRate: 7000,
@@ -373,7 +373,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 8500 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 4, basePrice: 16000 },
-      { type: 'vacancy', label: 'Move In/Out', durationHours: 6, basePrice: 24000 },
+      { type: 'vacancy', label: 'Vacancy Cleaning', durationHours: 6, basePrice: 24000 },
     ],
     hourlyRate: 5000,
     availability: {
@@ -429,7 +429,7 @@ export const mockCleanerProfiles: CleanerProfile[] = [
     servicesOffered: [
       { type: 'regular', label: 'Regular Cleaning', durationHours: 2, basePrice: 10000 },
       { type: 'deep_clean', label: 'Deep Clean', durationHours: 4, basePrice: 19000 },
-      { type: 'vacancy', label: 'Move In/Out', durationHours: 6, basePrice: 27000 },
+      { type: 'vacancy', label: 'Vacancy Cleaning', durationHours: 6, basePrice: 27000 },
     ],
     hourlyRate: 6000,
     availability: {

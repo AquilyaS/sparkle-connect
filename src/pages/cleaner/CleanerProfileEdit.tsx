@@ -35,10 +35,10 @@ export default function CleanerProfileEdit() {
   const [loading, setSaving] = useState(false);
 
   const [selectedServices, setSelectedServices] = useState<Record<ServiceType, boolean>>({
-    regular: true, deep_clean: false, move_in_out: false, office: false,
+    regular: true, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false,
   });
   const [servicePrices, setServicePrices] = useState<Record<ServiceType, string>>({
-    regular: '80', deep_clean: '150', move_in_out: '220', office: '120',
+    regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300',
   });
 
   const [availability, setAvailability] = useState<Record<DayOfWeek, { enabled: boolean; start: string; end: string }>>({

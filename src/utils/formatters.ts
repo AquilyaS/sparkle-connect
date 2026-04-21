@@ -21,7 +21,7 @@ export function getServiceIcon(type: ServiceType): LucideIcon {
     rental: CalendarDays,
     post_construction: HardHat,
   };
-  return icons[type];
+  return icons[type] ?? Sparkles;
 }
 
 export function formatCents(cents: number): string {

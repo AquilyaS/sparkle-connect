@@ -273,6 +273,54 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Blog */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-medium mb-3">
+                <BookOpen size={14} /> From the Blog
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Cleaning Tips & Insights</h2>
+              <p className="text-gray-500">Expert advice to help you keep your space spotless.</p>
+            </div>
+            <Link to="/blog" className="hidden sm:flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium text-sm transition-colors">
+              View all articles <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {blogPosts.map(post => (
+              <article key={post.title} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-teal-100 transition-all duration-200 flex flex-col">
+                <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className={`absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${post.accent}`}>
+                    {post.category}
+                  </span>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                    <span className="inline-flex items-center gap-1"><Calendar size={12} /> {formatDisplayDate(post.date)}</span>
+                    <span className="inline-flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 leading-snug group-hover:text-teal-700 transition-colors">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">{post.excerpt}</p>
+                  <span className="inline-flex items-center gap-1.5 text-teal-600 font-semibold text-sm group-hover:gap-2.5 transition-all">
+                    Read article <ArrowRight size={14} />
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Banner */}
       <section className="py-20 bg-gradient-to-r from-teal-600 to-teal-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

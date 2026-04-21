@@ -1,4 +1,28 @@
 import type { BookingStatus, ServiceType, CleanerBadge } from '../types';
+import { 
+  Sparkles, 
+  Home, 
+  Building2, 
+  PartyPopper, 
+  CalendarDays, 
+  Brush, 
+  HardHat,
+  LucideIcon 
+} from 'lucide-react';
+
+export function getServiceIcon(type: ServiceType): LucideIcon {
+  const icons: Record<ServiceType, LucideIcon> = {
+    regular: Sparkles,
+    deep_clean: Brush,
+    vacancy: Home,
+    office: Building2,
+    specialty: Sparkles,
+    event: PartyPopper,
+    rental: CalendarDays,
+    post_construction: HardHat,
+  };
+  return icons[type];
+}
 
 export function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;

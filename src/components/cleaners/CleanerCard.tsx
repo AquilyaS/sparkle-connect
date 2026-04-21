@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, ShieldCheck, Star } from 'lucide-react';
 import type { CleanerListing } from '../../types';
-import { formatCentsShort, getBadgeLabel, getBadgeColorClasses, getServiceLabel } from '../../utils/formatters';
+import { formatCentsShort, getBadgeLabel, getBadgeColorClasses, getServiceLabel, getServiceIcon } from '../../utils/formatters';
 import { useApp } from '../../hooks/useApp';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
@@ -67,11 +67,15 @@ export default function CleanerCard({ cleaner, showFavorite = true }: CleanerCar
 
       {/* Services */}
       <div className="px-4 pb-3 flex flex-wrap gap-1.5 justify-center">
-        {profile.servicesOffered.slice(0, 3).map(s => (
-          <Badge key={s.type} color="teal">
-            {getServiceLabel(s.type)}
-          </Badge>
-        ))}
+        {profile.servicesOffered.slice(0, 3).map(s => {
+          const ServiceIcon = getServiceIcon(s.type);
+          return (
+            <Badge key={s.type} color="teal" className="flex items-center gap-1">
+              <ServiceIcon size={12} />
+              {getServiceLabel(s.type)}
+            </Badge>
+          );
+        })}
       </div>
 
       {/* Cleaner badges */}

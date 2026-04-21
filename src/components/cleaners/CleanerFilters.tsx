@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
-import type { FilterState } from '../../types';
+import { SlidersHorizontal, X, Sparkles, Home, Building2, PartyPopper, CalendarDays, Brush, HardHat } from 'lucide-react';
+import type { FilterState, ServiceType } from '../../types';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+
+const serviceIcons: Record<ServiceType, React.ElementType> = {
+  regular: Sparkles,
+  deep_clean: Brush,
+  vacancy: Home,
+  office: Building2,
+  specialty: Sparkles,
+  event: PartyPopper,
+  rental: CalendarDays,
+  post_construction: HardHat,
+};
 
 interface CleanerFiltersProps {
   filters: FilterState;

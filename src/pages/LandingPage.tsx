@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award, Briefcase, UserCheck } from 'lucide-react';
+import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award, Briefcase, UserCheck, BookOpen, Clock } from 'lucide-react';
 import { getProfiles, getUsers } from '../utils/storage';
 import type { CleanerListing } from '../types';
 import CleanerCard from '../components/cleaners/CleanerCard';
@@ -38,6 +38,36 @@ const services = [
   { icon: <Zap size={28} />, label: 'Deep Clean', desc: 'Thorough top-to-bottom cleaning for a spotless, sanitized living space.', color: 'text-purple-600 bg-purple-50' },
   { icon: <Truck size={28} />, label: 'Move In/Out', desc: 'Complete cleaning service for before or after your big move.', color: 'text-blue-600 bg-blue-50' },
   { icon: <Building2 size={28} />, label: 'Office Cleaning', desc: 'Professional cleaning for offices, shops, and commercial spaces.', color: 'text-amber-600 bg-amber-50' },
+];
+
+const blogPosts = [
+  {
+    title: '10 Cleaning Hacks That Will Save You Hours Every Week',
+    excerpt: 'Discover the pro tips our top-rated cleaners use to make spaces sparkle in record time — from baking soda tricks to the two-bucket method.',
+    category: 'Tips & Tricks',
+    readTime: '5 min read',
+    date: '2026-04-10',
+    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-teal-50 text-teal-700',
+  },
+  {
+    title: 'Deep Clean vs Regular Clean: Which One Do You Actually Need?',
+    excerpt: 'Confused about which service to book? We break down the differences, the timing, and how to choose the right clean for your home.',
+    category: 'Guides',
+    readTime: '7 min read',
+    date: '2026-03-28',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-purple-50 text-purple-700',
+  },
+  {
+    title: 'How to Prep Your Home Before the Cleaner Arrives',
+    excerpt: 'A few small steps before your booking can make a huge difference. Here is how to get the most value from every cleaning appointment.',
+    category: 'How-To',
+    readTime: '4 min read',
+    date: '2026-03-15',
+    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-amber-50 text-amber-700',
+  },
 ];
 
 export default function LandingPage() {
@@ -238,6 +268,54 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-medium mb-3">
+                <BookOpen size={14} /> From the Blog
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Cleaning Tips & Insights</h2>
+              <p className="text-gray-500">Expert advice to help you keep your space spotless.</p>
+            </div>
+            <Link to="/blog" className="hidden sm:flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium text-sm transition-colors">
+              View all articles <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {blogPosts.map(post => (
+              <article key={post.title} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-teal-100 transition-all duration-200 flex flex-col">
+                <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <span className={`absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${post.accent}`}>
+                    {post.category}
+                  </span>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                    <span className="inline-flex items-center gap-1"><Calendar size={12} /> {formatDisplayDate(post.date)}</span>
+                    <span className="inline-flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 leading-snug group-hover:text-teal-700 transition-colors">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1">{post.excerpt}</p>
+                  <span className="inline-flex items-center gap-1.5 text-teal-600 font-semibold text-sm group-hover:gap-2.5 transition-all">
+                    Read article <ArrowRight size={14} />
+                  </span>
+                </div>
+              </article>
             ))}
           </div>
         </div>

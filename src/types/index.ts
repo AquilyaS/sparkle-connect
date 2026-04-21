@@ -1,5 +1,5 @@
 export type UserRole = 'client' | 'cleaner';
-export type ServiceType = 'regular' | 'deep_clean' | 'move_in_out' | 'office';
+export type ServiceType = 'regular' | 'deep_clean' | 'vacancy' | 'office' | 'specialty' | 'event' | 'rental' | 'post_construction';
 export type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'declined';
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type CleanerBadge = 'top_rated' | 'quick_responder' | 'verified' | 'eco_friendly';

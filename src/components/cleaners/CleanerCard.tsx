@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, ShieldCheck, Star } from 'lucide-react';
 import type { CleanerListing } from '../../types';
-import { formatCentsShort, getBadgeLabel, getBadgeColorClasses, getServiceLabel } from '../../utils/formatters';
+import { formatCentsShort, getBadgeLabel, getBadgeColorClasses, getServiceLabel, getServiceIcon } from '../../utils/formatters';
 import { useApp } from '../../hooks/useApp';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';

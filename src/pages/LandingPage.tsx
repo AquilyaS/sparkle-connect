@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award, Briefcase, UserCheck } from 'lucide-react';
+import { Search, CheckCircle, Calendar, Home, Sparkles, Zap, Truck, Building2, Star, ArrowRight, Users, Award, Briefcase, UserCheck, BookOpen, Clock } from 'lucide-react';
 import { getProfiles, getUsers } from '../utils/storage';
 import type { CleanerListing } from '../types';
 import CleanerCard from '../components/cleaners/CleanerCard';
@@ -38,6 +38,36 @@ const services = [
   { icon: <Zap size={28} />, label: 'Deep Clean', desc: 'Thorough top-to-bottom cleaning for a spotless, sanitized living space.', color: 'text-purple-600 bg-purple-50' },
   { icon: <Truck size={28} />, label: 'Move In/Out', desc: 'Complete cleaning service for before or after your big move.', color: 'text-blue-600 bg-blue-50' },
   { icon: <Building2 size={28} />, label: 'Office Cleaning', desc: 'Professional cleaning for offices, shops, and commercial spaces.', color: 'text-amber-600 bg-amber-50' },
+];
+
+const blogPosts = [
+  {
+    title: '10 Cleaning Hacks That Will Save You Hours Every Week',
+    excerpt: 'Discover the pro tips our top-rated cleaners use to make spaces sparkle in record time — from baking soda tricks to the two-bucket method.',
+    category: 'Tips & Tricks',
+    readTime: '5 min read',
+    date: '2026-04-10',
+    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-teal-50 text-teal-700',
+  },
+  {
+    title: 'Deep Clean vs Regular Clean: Which One Do You Actually Need?',
+    excerpt: 'Confused about which service to book? We break down the differences, the timing, and how to choose the right clean for your home.',
+    category: 'Guides',
+    readTime: '7 min read',
+    date: '2026-03-28',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-purple-50 text-purple-700',
+  },
+  {
+    title: 'How to Prep Your Home Before the Cleaner Arrives',
+    excerpt: 'A few small steps before your booking can make a huge difference. Here is how to get the most value from every cleaning appointment.',
+    category: 'How-To',
+    readTime: '4 min read',
+    date: '2026-03-15',
+    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=70',
+    accent: 'bg-amber-50 text-amber-700',
+  },
 ];
 
 export default function LandingPage() {

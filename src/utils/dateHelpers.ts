@@ -88,12 +88,14 @@ export function getDayOfWeek(iso: string): DayOfWeek {
 }
 
 export function formatTime(time: string): string {
-  const [hourStr, minStr] = time.split(':');
+  const parts = time.split(':');
+  if (parts.length !== 2) return time;
+  const [hourStr, minStr] = parts;
   const hour = parseInt(hourStr, 10);
-  const min = minStr;
+  if (isNaN(hour)) return time;
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const h = hour % 12 || 12;
-  return `${h}:${min} ${ampm}`;
+  return `${h}:${minStr} ${ampm}`;
 }
 
 export function generateTimeSlots(start: string, end: string): string[] {

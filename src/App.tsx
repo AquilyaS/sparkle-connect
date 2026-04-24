@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Component } from 'react';
+import type { ReactNode } from 'react';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import { BookingProvider } from './context/BookingContext';
@@ -25,6 +26,33 @@ import CleanerProfileEdit from './pages/cleaner/CleanerProfileEdit';
 import CleanerEarnings from './pages/cleaner/CleanerEarnings';
 import ClientProfileEdit from './pages/client/ClientProfileEdit';
 import NotFoundPage from './pages/NotFoundPage';
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Something went wrong</h1>
+          <p className="text-gray-500 mb-6">An unexpected error occurred. Please refresh the page.</p>
+          <button
+            onClick={() => { this.setState({ hasError: false }); window.location.href = '/'; }}
+            className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors"
+          >
+            Go to Home
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function AppContent() {
   useEffect(() => {
@@ -73,13 +101,15 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppProvider>
-        <AuthProvider>
-          <BookingProvider>
-            <AppContent />
-          </BookingProvider>
-        </AuthProvider>
-      </AppProvider>
+      <ErrorBoundary>
+        <AppProvider>
+          <AuthProvider>
+            <BookingProvider>
+              <AppContent />
+            </BookingProvider>
+          </AuthProvider>
+        </AppProvider>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

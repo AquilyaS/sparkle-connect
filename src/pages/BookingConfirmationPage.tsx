@@ -16,7 +16,7 @@ export default function BookingConfirmationPage() {
   const location = useLocation();
   const state = location.state as ConfirmationState | null;
 
-  if (!state) {
+  if (!state || !state.booking || !state.cleaner || !state.service) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <h2 className="text-xl font-bold text-gray-700 mb-4">No booking details found</h2>

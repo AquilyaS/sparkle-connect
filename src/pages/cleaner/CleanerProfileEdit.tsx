@@ -29,6 +29,8 @@ const ALL_SERVICES: { type: ServiceType; label: string; description: string; def
   { type: 'vacancy', label: 'Move-out cleaning', description: 'Turnover cleaning for empty homes', defaultDuration: 6, defaultPrice: 22000 },
   { type: 'office', label: 'Office cleaning', description: 'Recurring workplace cleaning', defaultDuration: 3, defaultPrice: 12000 },
   { type: 'rental', label: 'Short-term rental', description: 'Fast resets between guests', defaultDuration: 2, defaultPrice: 9000 },
+  { type: 'specialty', label: 'Specialty cleaning', description: 'Custom or specialized cleaning needs', defaultDuration: 3, defaultPrice: 16000 },
+  { type: 'event', label: 'Event cleaning', description: 'Pre or post-event cleanup', defaultDuration: 4, defaultPrice: 18000 },
   { type: 'post_construction', label: 'Post-construction', description: 'Dust, debris, and finish cleanup', defaultDuration: 8, defaultPrice: 30000 },
 ];
 

@@ -113,7 +113,9 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         // Update cleaner's aggregate rating
         const profiles = getProfiles();
         const cleanerReviews = updatedReviews.filter(r => r.cleanerId === booking.cleanerId);
-        const avgRating = cleanerReviews.reduce((sum, r) => sum + r.rating, 0) / cleanerReviews.length;
+        const avgRating = cleanerReviews.length > 0
+          ? cleanerReviews.reduce((sum, r) => sum + r.rating, 0) / cleanerReviews.length
+          : 0;
         const updatedProfiles = profiles.map(p =>
           p.userId === booking.cleanerId
             ? { ...p, averageRating: Math.round(avgRating * 10) / 10, totalReviews: cleanerReviews.length }

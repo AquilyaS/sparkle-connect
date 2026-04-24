@@ -26,8 +26,11 @@ export default function BrowsePage() {
     const profiles = getProfiles();
     const users = getUsers();
     return profiles
-      .map(profile => ({ user: users.find(u => u.id === profile.userId)!, profile }))
-      .filter(l => l.user);
+      .map(profile => {
+        const user = users.find(u => u.id === profile.userId);
+        return user ? { user, profile } : null;
+      })
+      .filter((l): l is CleanerListing => l !== null);
   }, []);
 
   const locations = useMemo(

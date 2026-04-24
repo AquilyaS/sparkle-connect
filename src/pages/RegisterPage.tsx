@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useApp } from '../hooks/useApp';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import CleanerProfileEdit from './cleaner/CleanerProfileEdit';
 
 export default function RegisterPage() {
   const { register, currentUser } = useAuth();
@@ -34,6 +35,11 @@ export default function RegisterPage() {
   if (currentUser) {
     navigate(currentUser.role === 'cleaner' ? '/cleaner/profile' : `/${currentUser.role}/dashboard`, { replace: true });
     return null;
+  }
+
+  // Cleaner signup → show the fun profile-building page (no login required)
+  if (role === 'cleaner') {
+    return <CleanerProfileEdit />;
   }
 
   const validate = () => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles, MapPin, DollarSign, CheckCircle2,
-  BadgeCheck, ShieldCheck, ExternalLink,
+  BadgeCheck, ShieldCheck, ExternalLink, Mail, Lock,
 } from 'lucide-react';
 import type { DayOfWeek, ServiceType, CleanerBadge } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
@@ -27,11 +27,15 @@ const SERVICE_OPTIONS: { type: ServiceType; emoji: string; label: string; price:
 ];
 
 export default function CleanerProfileEdit() {
-  const { currentUser, updateCurrentUser } = useAuth();
+  const { currentUser, updateCurrentUser, register } = useAuth();
   const { showToast } = useApp();
+
+  const isSignup = !currentUser;
 
   const [firstName, setFirstName]   = useState('');
   const [lastName, setLastName]     = useState('');
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
   const [location, setLocation]     = useState('');
   const [bio, setBio]               = useState('');
   const [rate, setRate]             = useState('40');
@@ -40,6 +44,7 @@ export default function CleanerProfileEdit() {
   const [services, setServices]     = useState<Set<ServiceType>>(new Set<ServiceType>(['regular', 'deep_clean']));
   const [loading, setLoading]       = useState(false);
   const [done, setDone]             = useState(false);
+  const [savedUserId, setSavedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -56,8 +61,6 @@ export default function CleanerProfileEdit() {
     setBgChecked(profile.backgroundChecked);
     setServices(new Set<ServiceType>(profile.servicesOffered.map(s => s.type)));
   }, [currentUser]);
-
-  if (!currentUser) return null;
 
   const toggleService = (type: ServiceType) => {
     setServices(prev => {
@@ -76,6 +79,16 @@ export default function CleanerProfileEdit() {
       showToast('Add your name and location to continue.', 'error');
       return;
     }
+    if (isSignup) {
+      if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+        showToast('Enter a valid email.', 'error');
+        return;
+      }
+      if (!password || password.length < 6) {
+        showToast('Password must be at least 6 characters.', 'error');
+        return;
+      }
+    }
     if (services.size === 0) {
       showToast('Pick at least one service.', 'error');
       return;
@@ -86,9 +99,23 @@ export default function CleanerProfileEdit() {
     }
 
     setLoading(true);
-    await new Promise(r => setTimeout(r, 400));
 
-    updateCurrentUser({ firstName, lastName, location });
+    let userId: string;
+    try {
+      if (isSignup) {
+        const newUser = await register({
+          firstName, lastName, email, password, location, role: 'cleaner',
+        });
+        userId = newUser.id;
+      } else {
+        userId = currentUser!.id;
+        updateCurrentUser({ firstName, lastName, location });
+      }
+    } catch (err) {
+      setLoading(false);
+      showToast((err as Error).message, 'error');
+      return;
+    }
 
     const profiles = getProfiles();
     const weekday = { start: '09:00', end: '17:00' };
@@ -102,9 +129,9 @@ export default function CleanerProfileEdit() {
       sun: null,
     };
 
-    const existing = profiles.find(p => p.userId === currentUser.id);
+    const existing = profiles.find(p => p.userId === userId);
     const nextProfile = {
-      userId: currentUser.id,
+      userId,
       bio,
       yearsExperience: existing?.yearsExperience ?? 0,
       servicesOffered: SERVICE_OPTIONS
@@ -129,17 +156,19 @@ export default function CleanerProfileEdit() {
 
     saveProfiles(
       existing
-        ? profiles.map(p => (p.userId === currentUser.id ? nextProfile : p))
+        ? profiles.map(p => (p.userId === userId ? nextProfile : p))
         : [...profiles, nextProfile]
     );
 
+    setSavedUserId(userId);
     setLoading(false);
     setDone(true);
-    showToast('Your profile is live! 🎉');
+    showToast(isSignup ? 'Welcome! Your profile is live 🎉' : 'Your profile is updated! 🎉');
   };
 
   /* ── Success screen ── */
   if (done) {
+    const profileId = savedUserId ?? currentUser?.id ?? '';
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
@@ -151,7 +180,7 @@ export default function CleanerProfileEdit() {
             Clients in your area can now find and book you. Share your link to get your first booking faster.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link to={`/cleaners/${currentUser.id}`} className="flex-1">
+            <Link to={`/cleaners/${profileId}`} className="flex-1">
               <Button variant="primary" size="lg" className="w-full">
                 View My Profile <ExternalLink size={15} />
               </Button>
@@ -179,13 +208,15 @@ export default function CleanerProfileEdit() {
         <div className="absolute inset-0 bg-gradient-to-r from-teal-900/80 via-teal-800/60 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-12 max-w-4xl">
           <div className="inline-flex items-center gap-2 bg-teal-400/20 border border-teal-300/30 text-teal-100 text-sm font-medium px-3 py-1 rounded-full mb-3 w-fit">
-            <Sparkles size={14} /> Your cleaner profile
+            <Sparkles size={14} /> {isSignup ? 'Become a CleanConnect pro' : 'Your cleaner profile'}
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
             Get booked.<br />Get paid. ✨
           </h1>
           <p className="text-teal-100 mt-2 text-sm sm:text-base max-w-sm">
-            Set up your profile in under 2 minutes — no CV, no stress.
+            {isSignup
+              ? 'Build your profile in under 2 minutes — no CV, no stress.'
+              : 'Update your profile in under 2 minutes — no CV, no stress.'}
           </p>
         </div>
       </div>
@@ -198,9 +229,9 @@ export default function CleanerProfileEdit() {
           <div className="px-6 pt-6 pb-5 border-b border-gray-100">
             <div className="flex items-center gap-4">
               <Avatar
-                src={currentUser.avatarUrl}
-                firstName={firstName}
-                lastName={lastName}
+                src={currentUser?.avatarUrl}
+                firstName={firstName || 'N'}
+                lastName={lastName || 'A'}
                 size="xl"
               />
               <div className="flex-1 grid sm:grid-cols-2 gap-3">
@@ -234,6 +265,40 @@ export default function CleanerProfileEdit() {
               />
             </div>
           </div>
+
+          {/* Account (signup only) */}
+          {isSignup && (
+            <div className="px-6 py-5 border-b border-gray-100">
+              <p className="text-sm font-semibold text-gray-800 mb-1">Your login 🔐</p>
+              <p className="text-xs text-gray-400 mb-3">You'll use this to sign back in and manage bookings.</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="flex items-center rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/30 focus-within:border-teal-400">
+                  <span className="px-3 py-2 bg-gray-50 text-gray-400 border-r border-gray-200">
+                    <Mail size={14} />
+                  </span>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-3 py-2 text-sm text-gray-900 focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/30 focus-within:border-teal-400">
+                  <span className="px-3 py-2 bg-gray-50 text-gray-400 border-r border-gray-200">
+                    <Lock size={14} />
+                  </span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Password (6+ chars)"
+                    className="w-full px-3 py-2 text-sm text-gray-900 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bio */}
           <div className="px-6 py-5 border-b border-gray-100">
@@ -330,8 +395,14 @@ export default function CleanerProfileEdit() {
           {/* CTA */}
           <div className="px-6 py-6 bg-gradient-to-br from-teal-50 to-white flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-gray-800">Ready to start getting booked?</p>
-              <p className="text-xs text-gray-400 mt-0.5">Your profile goes live instantly — clients can find you right away.</p>
+              <p className="text-sm font-semibold text-gray-800">
+                {isSignup ? 'Ready to start getting booked?' : 'Save your changes'}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {isSignup
+                  ? 'Your profile goes live instantly — clients can find you right away.'
+                  : 'Updates appear on your public profile immediately.'}
+              </p>
             </div>
             <Button
               variant="primary"
@@ -340,20 +411,27 @@ export default function CleanerProfileEdit() {
               isLoading={loading}
               className="whitespace-nowrap"
             >
-              {loading ? 'Publishing…' : 'Go Live ✨'}
+              {loading ? 'Publishing…' : isSignup ? 'Go Live ✨' : 'Save Changes'}
             </Button>
           </div>
 
         </div>
 
-        {/* Preview link */}
+        {/* Preview / sign-in link */}
         <div className="mt-4 text-center">
-          <Link
-            to={`/cleaners/${currentUser.id}`}
-            className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium"
-          >
-            <ExternalLink size={14} /> Preview your public profile
-          </Link>
+          {isSignup ? (
+            <p className="text-sm text-gray-500">
+              Already have an account?{' '}
+              <Link to="/login" className="text-teal-600 font-medium hover:underline">Sign in</Link>
+            </p>
+          ) : (
+            <Link
+              to={`/cleaners/${currentUser!.id}`}
+              className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium"
+            >
+              <ExternalLink size={14} /> Preview your public profile
+            </Link>
+          )}
         </div>
       </div>
     </div>

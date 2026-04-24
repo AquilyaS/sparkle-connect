@@ -38,7 +38,8 @@ export default function RegisterPage() {
   }
 
   // Cleaner signup → show the fun profile-building page (no login required)
-  if (role === 'cleaner') {
+  const isCleanerSignup = role === 'cleaner';
+  if (isCleanerSignup) {
     return <CleanerProfileEdit />;
   }
 

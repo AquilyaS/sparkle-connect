@@ -1,277 +1,796 @@
-import { useState, useEffect } from 'react';
-import { Save, Camera, ExternalLink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarDays,
+  Camera,
+  CheckCircle2,
+  Clock3,
+  DollarSign,
+  ExternalLink,
+  ImagePlus,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  UserCircle2,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
-import type { ServiceType, DayOfWeek } from '../../types';
+import type { DayOfWeek, ServiceType } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useApp } from '../../hooks/useApp';
 import { getProfiles, saveProfiles } from '../../utils/storage';
-import { getDayOrder, getDayFullName } from '../../utils/dateHelpers';
 import Input, { TextArea } from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
 
-const ALL_SERVICES: { type: ServiceType; label: string; defaultDuration: number; defaultPrice: number }[] = [
-  { type: 'regular', label: 'Regular Cleaning', defaultDuration: 2, defaultPrice: 8000 },
-  { type: 'deep_clean', label: 'Deep Clean', defaultDuration: 4, defaultPrice: 15000 },
-  { type: 'vacancy', label: 'Vacancy Cleaning', defaultDuration: 6, defaultPrice: 22000 },
-  { type: 'office', label: 'Office Cleaning', defaultDuration: 3, defaultPrice: 12000 },
-  { type: 'specialty', label: 'Specialty Cleaning', defaultDuration: 4, defaultPrice: 16000 },
-  { type: 'event', label: 'Event Cleaning', defaultDuration: 3, defaultPrice: 18000 },
-  { type: 'rental', label: 'Short-term Rental Cleaning', defaultDuration: 2, defaultPrice: 9000 },
-  { type: 'post_construction', label: 'Post-Construction Cleaning', defaultDuration: 8, defaultPrice: 30000 },
+const ALL_SERVICES: { type: ServiceType; label: string; description: string; defaultDuration: number; defaultPrice: number }[] = [
+  { type: 'regular', label: 'Regular cleaning', description: 'Weekly or bi-weekly home cleaning', defaultDuration: 2, defaultPrice: 8000 },
+  { type: 'deep_clean', label: 'Deep cleaning', description: 'Detailed top-to-bottom refresh', defaultDuration: 4, defaultPrice: 15000 },
+  { type: 'vacancy', label: 'Move-out cleaning', description: 'Turnover cleaning for empty homes', defaultDuration: 6, defaultPrice: 22000 },
+  { type: 'office', label: 'Office cleaning', description: 'Recurring workplace cleaning', defaultDuration: 3, defaultPrice: 12000 },
+  { type: 'rental', label: 'Short-term rental', description: 'Fast resets between guests', defaultDuration: 2, defaultPrice: 9000 },
+  { type: 'post_construction', label: 'Post-construction', description: 'Dust, debris, and finish cleanup', defaultDuration: 8, defaultPrice: 30000 },
 ];
 
-export default function CleanerProfileEdit() {
-  const { currentUser } = useAuth();
-  const { showToast } = useApp();
+const stepLabels = [
+  'Basic Info',
+  'Services & Pricing',
+  'About You',
+  'Availability',
+  'Trust Builders',
+] as const;
 
+const experienceOptions = [
+  { value: 'beginner', label: 'Beginner', helper: 'Just getting started' },
+  { value: '1-3', label: '1–3 years', helper: 'Steady hands-on experience' },
+  { value: '3+', label: '3+ years', helper: 'Highly experienced professional' },
+] as const;
+
+const stepCards = [
+  { icon: UserCircle2, title: 'Create your profile', text: 'Share the basics, choose your services, and set rates that work for you.' },
+  { icon: CalendarDays, title: 'Get booked by clients', text: 'Show your availability clearly so nearby clients can book with confidence.' },
+  { icon: DollarSign, title: 'Get paid', text: 'Turn your experience into repeat business with a profile built to convert.' },
+] as const;
+
+function getExperienceLevel(years: number) {
+  if (years >= 3) return '3+' as const;
+  if (years >= 1) return '1-3' as const;
+  return 'beginner' as const;
+}
+
+function getYearsFromExperience(level: 'beginner' | '1-3' | '3+') {
+  if (level === '3+') return 4;
+  if (level === '1-3') return 2;
+  return 0;
+}
+
+function getTimeRange(morning: boolean, afternoon: boolean, evening: boolean) {
+  if (morning && afternoon && evening) return { start: '08:00', end: '20:00' };
+  if (morning && afternoon) return { start: '08:00', end: '17:00' };
+  if (afternoon && evening) return { start: '12:00', end: '20:00' };
+  if (morning && evening) return { start: '08:00', end: '20:00' };
+  if (morning) return { start: '08:00', end: '12:00' };
+  if (afternoon) return { start: '12:00', end: '17:00' };
+  if (evening) return { start: '17:00', end: '21:00' };
+  return { start: '09:00', end: '17:00' };
+}
+
+function getTimeSelections(slots: Array<{ start: string; end: string }>) {
+  if (!slots.length) {
+    return { morning: true, afternoon: true, evening: false };
+  }
+
+  const morning = slots.some(slot => slot.start < '12:00');
+  const afternoon = slots.some(slot => slot.start < '17:00' && slot.end > '12:00');
+  const evening = slots.some(slot => slot.end > '17:00');
+
+  return { morning, afternoon, evening };
+}
+
+export default function CleanerProfileEdit() {
+  const { currentUser, updateCurrentUser } = useAuth();
+  const { showToast } = useApp();
+  const learnMoreRef = useRef<HTMLElement | null>(null);
+
+  const [started, setStarted] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
+  const [experienceLevel, setExperienceLevel] = useState<'beginner' | '1-3' | '3+'>('beginner');
+  const [pricingMode, setPricingMode] = useState<'hourly' | 'fixed'>('hourly');
   const [hourlyRate, setHourlyRate] = useState('40');
-  const [yearsExp, setYearsExp] = useState('1');
-  const [coverage, setCoverage] = useState('15');
-  const [languages, setLanguages] = useState('English');
   const [insured, setInsured] = useState(false);
   const [bgChecked, setBgChecked] = useState(false);
-  const [loading, setSaving] = useState(false);
+  const [availabilityGroups, setAvailabilityGroups] = useState({
+    weekdays: true,
+    weekends: false,
+    morning: true,
+    afternoon: true,
+    evening: false,
+  });
 
   const [selectedServices, setSelectedServices] = useState<Record<ServiceType, boolean>>({
-    regular: true, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false,
-  });
-  const [servicePrices, setServicePrices] = useState<Record<ServiceType, string>>({
-    regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300',
+    regular: true,
+    deep_clean: true,
+    vacancy: false,
+    office: false,
+    specialty: false,
+    event: false,
+    rental: false,
+    post_construction: false,
   });
 
-  const [availability, setAvailability] = useState<Record<DayOfWeek, { enabled: boolean; start: string; end: string }>>({
-    mon: { enabled: true, start: '09:00', end: '17:00' },
-    tue: { enabled: true, start: '09:00', end: '17:00' },
-    wed: { enabled: true, start: '09:00', end: '17:00' },
-    thu: { enabled: true, start: '09:00', end: '17:00' },
-    fri: { enabled: true, start: '09:00', end: '17:00' },
-    sat: { enabled: false, start: '10:00', end: '15:00' },
-    sun: { enabled: false, start: '10:00', end: '15:00' },
+  const [servicePrices, setServicePrices] = useState<Record<ServiceType, string>>({
+    regular: '80',
+    deep_clean: '150',
+    vacancy: '220',
+    office: '120',
+    specialty: '160',
+    event: '180',
+    rental: '90',
+    post_construction: '300',
   });
 
   useEffect(() => {
     if (!currentUser) return;
-    const profile = getProfiles().find(p => p.userId === currentUser.id);
+
+    setFirstName(currentUser.firstName);
+    setLastName(currentUser.lastName);
+    setLocation(currentUser.location);
+
+    const profile = getProfiles().find(item => item.userId === currentUser.id);
     if (!profile) return;
+
     setBio(profile.bio);
     setHourlyRate(String(profile.hourlyRate / 100));
-    setYearsExp(String(profile.yearsExperience));
-    setCoverage(String(profile.coverageAreaMiles));
-    setLanguages(profile.languages.join(', '));
+    setExperienceLevel(getExperienceLevel(profile.yearsExperience));
     setInsured(profile.insuranceCertified);
     setBgChecked(profile.backgroundChecked);
 
-    const svcMap: Record<ServiceType, boolean> = { regular: false, deep_clean: false, vacancy: false, office: false, specialty: false, event: false, rental: false, post_construction: false };
-    const priceMap: Record<ServiceType, string> = { regular: '80', deep_clean: '150', vacancy: '220', office: '120', specialty: '160', event: '180', rental: '90', post_construction: '300' };
-    profile.servicesOffered.forEach(s => {
-      svcMap[s.type] = true;
-      priceMap[s.type] = String(s.basePrice / 100);
-    });
-    setSelectedServices(svcMap);
-    setServicePrices(priceMap);
+    const serviceSelections: Record<ServiceType, boolean> = {
+      regular: false,
+      deep_clean: false,
+      vacancy: false,
+      office: false,
+      specialty: false,
+      event: false,
+      rental: false,
+      post_construction: false,
+    };
 
-    const avail = { ...availability };
-    getDayOrder().forEach(day => {
-      const slot = profile.availability[day];
-      avail[day] = slot ? { enabled: true, start: slot.start, end: slot.end } : { enabled: false, start: '09:00', end: '17:00' };
+    const servicePricing: Record<ServiceType, string> = {
+      regular: '80',
+      deep_clean: '150',
+      vacancy: '220',
+      office: '120',
+      specialty: '160',
+      event: '180',
+      rental: '90',
+      post_construction: '300',
+    };
+
+    profile.servicesOffered.forEach(service => {
+      serviceSelections[service.type] = true;
+      servicePricing[service.type] = String(service.basePrice / 100);
     });
-    setAvailability(avail);
+
+    setSelectedServices(serviceSelections);
+    setServicePrices(servicePricing);
+
+    const weekdayEnabled = ['mon', 'tue', 'wed', 'thu', 'fri'].some(day => Boolean(profile.availability[day as DayOfWeek]));
+    const weekendEnabled = ['sat', 'sun'].some(day => Boolean(profile.availability[day as DayOfWeek]));
+    const timeSelections = getTimeSelections(
+      Object.values(profile.availability).filter((slot): slot is { start: string; end: string } => Boolean(slot))
+    );
+
+    setAvailabilityGroups({
+      weekdays: weekdayEnabled,
+      weekends: weekendEnabled,
+      morning: timeSelections.morning,
+      afternoon: timeSelections.afternoon,
+      evening: timeSelections.evening,
+    });
   }, [currentUser]);
-
-  const handleSave = async () => {
-    if (!currentUser) return;
-    setSaving(true);
-    await new Promise(r => setTimeout(r, 400));
-
-    const profiles = getProfiles();
-    const updated = profiles.map(p => {
-      if (p.userId !== currentUser.id) return p;
-      return {
-        ...p,
-        bio,
-        yearsExperience: parseInt(yearsExp) || 0,
-        hourlyRate: Math.round(parseFloat(hourlyRate) * 100) || p.hourlyRate,
-        coverageAreaMiles: parseInt(coverage) || 15,
-        languages: languages.split(',').map(l => l.trim()).filter(Boolean),
-        insuranceCertified: insured,
-        backgroundChecked: bgChecked,
-        servicesOffered: ALL_SERVICES
-          .filter(s => selectedServices[s.type])
-          .map(s => ({
-            type: s.type,
-            label: s.label,
-            durationHours: s.defaultDuration,
-            basePrice: Math.round(parseFloat(servicePrices[s.type] || '0') * 100),
-          })),
-        availability: Object.fromEntries(
-          getDayOrder().map(day => [
-            day,
-            availability[day].enabled ? { start: availability[day].start, end: availability[day].end } : null,
-          ])
-        ) as typeof p.availability,
-      };
-    });
-    saveProfiles(updated);
-    setSaving(false);
-    showToast('Profile saved successfully!');
-  };
 
   if (!currentUser) return null;
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Profile header card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-        <div className="flex items-center gap-5">
-          {/* Avatar with camera overlay */}
-          <div className="relative flex-shrink-0">
-            <Avatar
-              src={currentUser.avatarUrl}
-              firstName={currentUser.firstName}
-              lastName={currentUser.lastName}
-              size="xl"
-            />
-            <button
-              type="button"
-              onClick={() => showToast('Photo upload coming soon')}
-              className="absolute bottom-0 right-0 bg-teal-600 hover:bg-teal-700 text-white rounded-full p-1.5 shadow transition-colors"
-              aria-label="Upload photo"
-            >
-              <Camera size={14} />
-            </button>
-          </div>
+  const selectedCount = Object.values(selectedServices).filter(Boolean).length;
+  const progress = ((currentStep + 1) / stepLabels.length) * 100;
 
-          {/* Name, location, and public profile link */}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 truncate">
-              {currentUser.firstName} {currentUser.lastName}
-            </h2>
-            {currentUser.location && (
-              <p className="text-sm text-gray-500 mt-0.5 truncate">{currentUser.location}</p>
-            )}
-            <Link
-              to={`/cleaners/${currentUser.id}`}
-              className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
-            >
-              View Public Profile
-              <ExternalLink size={13} />
+  const validateStep = () => {
+    if (currentStep === 0) {
+      if (!firstName.trim() || !lastName.trim() || !location.trim()) {
+        showToast('Add your name and location to continue.', 'error');
+        return false;
+      }
+    }
+
+    if (currentStep === 1) {
+      if (!selectedCount) {
+        showToast('Choose at least one service to continue.', 'error');
+        return false;
+      }
+
+      const invalidPrice = ALL_SERVICES
+        .filter(service => selectedServices[service.type])
+        .some(service => !servicePrices[service.type] || Number(servicePrices[service.type]) <= 0);
+
+      if (invalidPrice) {
+        showToast('Add a valid rate for each selected service.', 'error');
+        return false;
+      }
+    }
+
+    if (currentStep === 2 && !bio.trim()) {
+      showToast('Write a short bio so clients know why to choose you.', 'error');
+      return false;
+    }
+
+    if (currentStep === 3) {
+      if (!availabilityGroups.weekdays && !availabilityGroups.weekends) {
+        showToast('Select when clients can book you.', 'error');
+        return false;
+      }
+      if (!availabilityGroups.morning && !availabilityGroups.afternoon && !availabilityGroups.evening) {
+        showToast('Choose at least one time window.', 'error');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!validateStep()) return;
+    setCurrentStep(step => Math.min(step + 1, stepLabels.length - 1));
+  };
+
+  const handleSave = async () => {
+    if (!validateStep()) return;
+
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    updateCurrentUser({ firstName, lastName, location });
+
+    const profiles = getProfiles();
+    const timeRange = getTimeRange(
+      availabilityGroups.morning,
+      availabilityGroups.afternoon,
+      availabilityGroups.evening,
+    );
+
+    const days: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const availability = Object.fromEntries(
+      days.map(day => {
+        const isWeekday = ['mon', 'tue', 'wed', 'thu', 'fri'].includes(day);
+        const enabled = isWeekday ? availabilityGroups.weekdays : availabilityGroups.weekends;
+        return [day, enabled ? timeRange : null];
+      })
+    ) as Record<DayOfWeek, { start: string; end: string } | null>;
+
+    const nextProfile = {
+      userId: currentUser.id,
+      bio,
+      yearsExperience: getYearsFromExperience(experienceLevel),
+      servicesOffered: ALL_SERVICES
+        .filter(service => selectedServices[service.type])
+        .map(service => ({
+          type: service.type,
+          label: service.label,
+          durationHours: service.defaultDuration,
+          basePrice: Math.round(Number(servicePrices[service.type]) * 100),
+        })),
+      hourlyRate: Math.round(Number(hourlyRate || '0') * 100),
+      availability,
+      coverageAreaMiles: 15,
+      languages: ['English'],
+      insuranceCertified: insured,
+      backgroundChecked: bgChecked,
+      averageRating: profiles.find(profile => profile.userId === currentUser.id)?.averageRating ?? 0,
+      totalReviews: profiles.find(profile => profile.userId === currentUser.id)?.totalReviews ?? 0,
+      totalJobsCompleted: profiles.find(profile => profile.userId === currentUser.id)?.totalJobsCompleted ?? 0,
+      badges: profiles.find(profile => profile.userId === currentUser.id)?.badges ?? [],
+    };
+
+    const hasExistingProfile = profiles.some(profile => profile.userId === currentUser.id);
+    saveProfiles(
+      hasExistingProfile
+        ? profiles.map(profile => (profile.userId === currentUser.id ? nextProfile : profile))
+        : [...profiles, nextProfile]
+    );
+
+    setLoading(false);
+    setCompleted(true);
+    showToast('Your cleaner profile is live!');
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/cleaners/${currentUser.id}`;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: `${firstName} ${lastName} on CleanConnect`,
+        text: 'Check out my cleaner profile on CleanConnect.',
+        url: shareUrl,
+      });
+      return;
+    }
+
+    await navigator.clipboard.writeText(shareUrl);
+    showToast('Profile link copied to clipboard!');
+  };
+
+  if (completed) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 sm:p-10 text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-6">
+            <CheckCircle2 size={32} />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Your profile is live! 🎉</h1>
+          <p className="text-gray-500 max-w-xl mx-auto mb-8">
+            You’re ready to start attracting cleaning clients with a profile that feels polished, trustworthy, and bookable.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Link to={`/cleaners/${currentUser.id}`}>
+              <Button variant="primary" size="lg" className="w-full">
+                View My Profile
+              </Button>
             </Link>
+            <Button variant="secondary" size="lg" className="w-full" onClick={handleShare}>
+              Share Profile
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-full"
+              onClick={() => showToast('Tip: complete your bio and add trust signals to increase bookings.')}
+            >
+              Tips to get booked
+            </Button>
           </div>
         </div>
       </div>
+    );
+  }
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">Edit Profile</h1>
-
-      <div className="space-y-6">
-        {/* Bio */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">About You</h2>
-          <div className="space-y-4">
-            <TextArea
-              label="Bio"
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder="Tell clients about your experience, approach, and what makes you great..."
-              rows={4}
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <Input label="Hourly Rate ($)" type="number" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} min="10" />
-              <Input label="Years Experience" type="number" value={yearsExp} onChange={e => setYearsExp(e.target.value)} min="0" />
-              <Input label="Coverage (miles)" type="number" value={coverage} onChange={e => setCoverage(e.target.value)} min="1" />
+  if (!started) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <section className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-0">
+            <div className="p-8 sm:p-10 lg:p-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-sm font-medium mb-5">
+                <Sparkles size={16} />
+                Cleaner opportunity
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight max-w-2xl">
+                Start getting cleaning clients in your area
+              </h1>
+              <p className="text-lg text-gray-500 mt-4 max-w-2xl">
+                Create your profile, set your rates, and get booked—on your terms.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <Button variant="primary" size="lg" onClick={() => setStarted(true)}>
+                  Create My Profile
+                  <ArrowRight size={16} />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => learnMoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  Learn More
+                </Button>
+              </div>
             </div>
-            <Input label="Languages (comma-separated)" value={languages} onChange={e => setLanguages(e.target.value)} placeholder="English, Spanish" />
-          </div>
-        </div>
 
-        {/* Services */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Services Offered</h2>
-          <div className="space-y-3">
-            {ALL_SERVICES.map(s => (
-              <div key={s.type} className={`flex items-center gap-4 p-3 rounded-xl border transition-colors ${selectedServices[s.type] ? 'border-teal-200 bg-teal-50' : 'border-gray-100 bg-gray-50'}`}>
-                <input
-                  type="checkbox"
-                  id={`svc-${s.type}`}
-                  checked={selectedServices[s.type]}
-                  onChange={e => setSelectedServices(prev => ({ ...prev, [s.type]: e.target.checked }))}
-                  className="w-4 h-4 accent-teal-600"
-                />
-                <label htmlFor={`svc-${s.type}`} className="flex-1 text-sm font-medium text-gray-700 cursor-pointer">{s.label}</label>
-                {selectedServices[s.type] && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-400">$</span>
-                    <input
-                      type="number"
-                      value={servicePrices[s.type]}
-                      onChange={e => setServicePrices(prev => ({ ...prev, [s.type]: e.target.value }))}
-                      className="w-20 px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      min="0"
-                      placeholder="Price"
-                    />
+            <div className="bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-100 p-8 sm:p-10 flex items-center">
+              <div className="w-full bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <Avatar
+                    src={currentUser.avatarUrl}
+                    firstName={currentUser.firstName}
+                    lastName={currentUser.lastName}
+                    size="xl"
+                  />
+                  <div>
+                    <p className="text-sm text-gray-500">Cleaner spotlight</p>
+                    <h2 className="text-xl font-semibold text-gray-900">{firstName || currentUser.firstName} {lastName || currentUser.lastName}</h2>
+                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <MapPin size={14} />
+                      {location || 'Your local area'}
+                    </p>
                   </div>
-                )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500 mb-1">Profile setup</p>
+                    <p className="text-2xl font-semibold text-gray-900">5 steps</p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500 mb-1">Built for</p>
+                    <p className="text-2xl font-semibold text-gray-900">Fast trust</p>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-2xl bg-teal-50 p-4 border border-teal-100">
+                  <p className="text-sm text-teal-800 font-medium">
+                    Designed to feel quick, empowering, and not overwhelming—more like setting up a social profile than filling out a job application.
+                  </p>
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section ref={learnMoreRef} className="mt-8">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-sm font-medium text-teal-700 mb-2">How it works</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Simple, achievable, and built to reduce friction</h2>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {stepCards.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+                    <Icon size={22} />
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">0{index + 1}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-gray-500 text-sm leading-6">{item.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="border-b border-gray-100 px-6 sm:px-8 py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+            <div>
+              <p className="text-sm font-medium text-teal-700 mb-2">Cleaner profile setup</p>
+              <h1 className="text-3xl font-bold text-gray-900">Build a profile that gets booked</h1>
+              <p className="text-gray-500 mt-2">
+                Complete one short step at a time so clients can trust you quickly.
+              </p>
+            </div>
+            <div className="lg:w-72">
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                <span>Step {currentStep + 1} of {stepLabels.length}</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
+            {stepLabels.map((label, index) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => index <= currentStep && setCurrentStep(index)}
+                className={`text-left rounded-2xl border px-4 py-3 transition-colors ${
+                  index === currentStep
+                    ? 'border-teal-200 bg-teal-50 text-teal-700'
+                    : index < currentStep
+                      ? 'border-gray-200 bg-white text-gray-700'
+                      : 'border-gray-100 bg-gray-50 text-gray-400'
+                }`}
+              >
+                <p className="text-xs mb-1">0{index + 1}</p>
+                <p className="text-sm font-medium leading-5">{label}</p>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Availability */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Availability</h2>
-          <div className="space-y-3">
-            {getDayOrder().map(day => (
-              <div key={day} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${availability[day].enabled ? 'border-teal-200 bg-teal-50' : 'border-gray-100'}`}>
-                <input
-                  type="checkbox"
-                  id={`avail-${day}`}
-                  checked={availability[day].enabled}
-                  onChange={e => setAvailability(prev => ({ ...prev, [day]: { ...prev[day], enabled: e.target.checked } }))}
-                  className="w-4 h-4 accent-teal-600"
-                />
-                <label htmlFor={`avail-${day}`} className="w-24 text-sm font-medium text-gray-700 cursor-pointer">{getDayFullName(day)}</label>
-                {availability[day].enabled && (
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="time"
-                      value={availability[day].start}
-                      onChange={e => setAvailability(prev => ({ ...prev, [day]: { ...prev[day], start: e.target.value } }))}
-                      className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                    <span className="text-gray-400 text-xs">to</span>
-                    <input
-                      type="time"
-                      value={availability[day].end}
-                      onChange={e => setAvailability(prev => ({ ...prev, [day]: { ...prev[day], end: e.target.value } }))}
-                      className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  </div>
-                )}
+        <div className="p-6 sm:p-8">
+          {currentStep === 0 && (
+            <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-6 items-start">
+              <div className="rounded-3xl bg-gray-50 border border-gray-100 p-6">
+                <div className="relative inline-flex mb-5">
+                  <Avatar src={currentUser.avatarUrl} firstName={firstName} lastName={lastName} size="xl" />
+                  <button
+                    type="button"
+                    onClick={() => showToast('Photo upload coming soon')}
+                    className="absolute -bottom-1 -right-1 bg-teal-600 hover:bg-teal-700 text-white rounded-full p-2 shadow transition-colors"
+                    aria-label="Upload profile photo"
+                  >
+                    <Camera size={14} />
+                  </button>
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Make a strong first impression</h2>
+                <p className="text-gray-500 text-sm leading-6">
+                  Add the basics so nearby clients instantly understand who you are and where you work.
+                </p>
               </div>
-            ))}
+
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Input label="First name" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Jane" />
+                  <Input label="Last name" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Smith" />
+                </div>
+                <Input label="Location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Brooklyn, NY" hint="Your city and area help clients discover you." />
+                <button
+                  type="button"
+                  onClick={() => showToast('Photo upload coming soon')}
+                  className="w-full rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-left hover:border-teal-300 hover:bg-teal-50 transition-colors"
+                >
+                  <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Camera size={16} />
+                    Add profile photo
+                  </span>
+                  <p className="text-sm text-gray-500 mt-2">A friendly, professional photo increases trust.</p>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Services & pricing</h2>
+                  <p className="text-gray-500 text-sm">Choose what you offer and use the suggested rates to get started faster.</p>
+                </div>
+                <div className="inline-flex rounded-2xl bg-gray-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setPricingMode('hourly')}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${pricingMode === 'hourly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  >
+                    Hourly rates
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPricingMode('fixed')}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${pricingMode === 'fixed' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  >
+                    Fixed rates
+                  </button>
+                </div>
+              </div>
+
+              {pricingMode === 'hourly' && (
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 max-w-sm">
+                  <Input label="Suggested hourly rate ($)" type="number" min="10" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} hint="Start with a competitive rate and refine later." />
+                </div>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {ALL_SERVICES.map(service => (
+                  <label
+                    key={service.type}
+                    className={`rounded-2xl border p-4 transition-colors cursor-pointer ${selectedServices[service.type] ? 'border-teal-200 bg-teal-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedServices[service.type]}
+                        onChange={e => setSelectedServices(prev => ({ ...prev, [service.type]: e.target.checked }))}
+                        className="mt-1 w-4 h-4 accent-teal-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-base font-semibold text-gray-900">{service.label}</p>
+                            <p className="text-sm text-gray-500 mt-1">{service.description}</p>
+                          </div>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">Suggested ${service.defaultPrice / 100}</span>
+                        </div>
+                        {selectedServices[service.type] && (
+                          <div className="mt-4 max-w-[170px]">
+                            <Input
+                              label={pricingMode === 'hourly' ? 'Rate ($)' : 'Fixed price ($)'}
+                              type="number"
+                              min="10"
+                              value={servicePrices[service.type]}
+                              onChange={e => setServicePrices(prev => ({ ...prev, [service.type]: e.target.value }))}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Tell clients why they should choose you</h2>
+                <p className="text-gray-500 text-sm mb-5">
+                  Keep it warm and specific—your experience, reliability, and what kind of homes or clients you love working with.
+                </p>
+                <TextArea
+                  label="Short bio"
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  placeholder="I’m dependable, detail-focused, and known for leaving spaces fresh, organized, and guest-ready..."
+                  rows={7}
+                />
+              </div>
+
+              <div className="rounded-3xl bg-gray-50 border border-gray-100 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Experience level</h3>
+                <div className="space-y-3">
+                  {experienceOptions.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setExperienceLevel(option.value)}
+                      className={`w-full text-left rounded-2xl border p-4 transition-colors ${experienceLevel === option.value ? 'border-teal-200 bg-teal-50' : 'border-gray-200 bg-white'}`}
+                    >
+                      <p className="font-medium text-gray-900">{option.label}</p>
+                      <p className="text-sm text-gray-500 mt-1">{option.helper}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Set your availability</h2>
+                <p className="text-gray-500 text-sm">Keep this simple—just tell clients when you usually work.</p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="rounded-3xl border border-gray-100 p-6">
+                  <div className="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+                    <CalendarDays size={18} />
+                    Days you work
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: 'weekdays', label: 'Weekdays' },
+                      { key: 'weekends', label: 'Weekends' },
+                    ].map(item => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setAvailabilityGroups(prev => ({ ...prev, [item.key]: !prev[item.key as 'weekdays' | 'weekends'] }))}
+                        className={`rounded-2xl border px-4 py-5 text-left transition-colors ${availabilityGroups[item.key as 'weekdays' | 'weekends'] ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-gray-200 bg-white text-gray-600'}`}
+                      >
+                        <p className="font-medium">{item.label}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-gray-100 p-6">
+                  <div className="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+                    <Clock3 size={18} />
+                    Times you prefer
+                  </div>
+                  <div className="grid gap-3">
+                    {[
+                      { key: 'morning', label: 'Morning', helper: '8am – 12pm' },
+                      { key: 'afternoon', label: 'Afternoon', helper: '12pm – 5pm' },
+                      { key: 'evening', label: 'Evening', helper: '5pm – 9pm' },
+                    ].map(item => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setAvailabilityGroups(prev => ({ ...prev, [item.key]: !prev[item.key as 'morning' | 'afternoon' | 'evening'] }))}
+                        className={`rounded-2xl border p-4 text-left transition-colors ${availabilityGroups[item.key as 'morning' | 'afternoon' | 'evening'] ? 'border-teal-200 bg-teal-50 text-teal-700' : 'border-gray-200 bg-white text-gray-600'}`}
+                      >
+                        <p className="font-medium">{item.label}</p>
+                        <p className="text-sm opacity-75 mt-1">{item.helper}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Trust builders</h2>
+                <p className="text-gray-500 text-sm">
+                  Trust is the foundation of the platform, so encourage clients to choose you by showcasing your work and credibility.
+                </p>
+              </div>
+
+              <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-6">
+                <div className="rounded-3xl border border-gray-100 p-6">
+                  <div className="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+                    <ImagePlus size={18} />
+                    Before & after photos
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => showToast('Photo portfolio uploads are coming soon.')}
+                    className="w-full rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 hover:border-teal-300 hover:bg-teal-50 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <ImagePlus size={16} />
+                      Upload before/after photos
+                    </span>
+                    <p className="text-sm text-gray-500 mt-2">Show the quality of your work visually.</p>
+                  </button>
+                </div>
+
+                <div className="rounded-3xl border border-gray-100 p-6">
+                  <div className="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+                    <ShieldCheck size={18} />
+                    Credibility signals
+                  </div>
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 cursor-pointer">
+                      <input type="checkbox" checked={insured} onChange={e => setInsured(e.target.checked)} className="mt-1 w-4 h-4 accent-teal-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">Add certifications</p>
+                        <p className="text-sm text-gray-500 mt-1">Optional, but helpful if you have insurance or training.</p>
+                      </div>
+                    </label>
+                    <label className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 cursor-pointer">
+                      <input type="checkbox" checked={bgChecked} onChange={e => setBgChecked(e.target.checked)} className="mt-1 w-4 h-4 accent-teal-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">Background check ready</p>
+                        <p className="text-sm text-gray-500 mt-1">Perfect for a later verification step and stronger trust.</p>
+                      </div>
+                    </label>
+                    <div className="rounded-2xl bg-teal-50 border border-teal-100 p-4">
+                      <div className="flex items-start gap-2 text-teal-800">
+                        <BadgeCheck size={18} className="mt-0.5" />
+                        <p className="text-sm font-medium">Profiles with strong trust signals tend to convert better.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-8 pt-6 border-t border-gray-100">
+            <Button variant="ghost" size="lg" onClick={() => (currentStep === 0 ? setStarted(false) : setCurrentStep(step => Math.max(step - 1, 0)))}>
+              {currentStep === 0 ? 'Back' : 'Previous step'}
+            </Button>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <Link to={`/cleaners/${currentUser.id}`} className="inline-flex">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+                  Preview Profile
+                  <ExternalLink size={15} />
+                </Button>
+              </Link>
+              {currentStep < stepLabels.length - 1 ? (
+                <Button variant="primary" size="lg" onClick={handleNext}>
+                  Next step
+                  <ArrowRight size={16} />
+                </Button>
+              ) : (
+                <Button variant="primary" size="lg" onClick={handleSave} isLoading={loading}>
+                  Publish Profile
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Certifications */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Certifications</h2>
-          <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={insured} onChange={e => setInsured(e.target.checked)} className="w-4 h-4 accent-teal-600" />
-              <span className="text-sm font-medium text-gray-700">I am insurance certified</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={bgChecked} onChange={e => setBgChecked(e.target.checked)} className="w-4 h-4 accent-teal-600" />
-              <span className="text-sm font-medium text-gray-700">I have passed a background check</span>
-            </label>
-          </div>
-        </div>
-
-        <Button variant="primary" size="lg" onClick={handleSave} isLoading={loading} className="w-full">
-          <Save size={16} />
-          Save Changes
-        </Button>
       </div>
     </div>
   );

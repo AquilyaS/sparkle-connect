@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Home, Briefcase } from 'lucide-react';
 import type { UserRole } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const { register, currentUser } = useAuth();
   const { showToast } = useApp();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [role, setRole] = useState<UserRole>('client');
   const [form, setForm] = useState({
@@ -23,8 +24,15 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Partial<typeof form>>({});
   const [loading, setLoading] = useState(false);
 
+   useEffect(() => {
+    const requestedRole = searchParams.get('role');
+    if (requestedRole === 'client' || requestedRole === 'cleaner') {
+      setRole(requestedRole);
+    }
+  }, [searchParams]);
+
   if (currentUser) {
-    navigate(`/${currentUser.role}/dashboard`, { replace: true });
+    navigate(currentUser.role === 'cleaner' ? '/cleaner/profile' : `/${currentUser.role}/dashboard`, { replace: true });
     return null;
   }
 
@@ -49,7 +57,7 @@ export default function RegisterPage() {
     try {
       const user = await register({ ...form, role });
       showToast(`Welcome to CleanConnect, ${user.firstName}!`);
-      navigate(`/${user.role}/dashboard`);
+      navigate(user.role === 'cleaner' ? '/cleaner/profile' : `/${user.role}/dashboard`);
     } catch (err) {
       showToast((err as Error).message, 'error');
     } finally {

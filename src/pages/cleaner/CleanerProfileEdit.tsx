@@ -37,7 +37,7 @@ export default function CleanerProfileEdit() {
   const [rate, setRate]             = useState('40');
   const [insured, setInsured]       = useState(false);
   const [bgChecked, setBgChecked]   = useState(false);
-  const [services, setServices]     = useState<Set<ServiceType>>(new Set(['regular', 'deep_clean']));
+  const [services, setServices]     = useState<Set<ServiceType>>(new Set<ServiceType>(['regular', 'deep_clean']));
   const [loading, setLoading]       = useState(false);
   const [done, setDone]             = useState(false);
 

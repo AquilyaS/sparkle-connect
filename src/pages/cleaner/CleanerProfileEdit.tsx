@@ -4,7 +4,7 @@ import {
   Sparkles, MapPin, DollarSign, CheckCircle2,
   BadgeCheck, ShieldCheck, ExternalLink,
 } from 'lucide-react';
-import type { DayOfWeek, ServiceType } from '../../types';
+import type { DayOfWeek, ServiceType, CleanerBadge } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useApp } from '../../hooks/useApp';
 import { getProfiles, saveProfiles } from '../../utils/storage';
@@ -54,15 +54,19 @@ export default function CleanerProfileEdit() {
     setRate(String(profile.hourlyRate / 100));
     setInsured(profile.insuranceCertified);
     setBgChecked(profile.backgroundChecked);
-    setServices(new Set(profile.servicesOffered.map(s => s.type)));
+    setServices(new Set<ServiceType>(profile.servicesOffered.map(s => s.type)));
   }, [currentUser]);
 
   if (!currentUser) return null;
 
   const toggleService = (type: ServiceType) => {
     setServices(prev => {
-      const next = new Set(prev);
-      next.has(type) ? next.delete(type) : next.add(type);
+      const next = new Set<ServiceType>(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
       return next;
     });
   };
@@ -87,10 +91,16 @@ export default function CleanerProfileEdit() {
     updateCurrentUser({ firstName, lastName, location });
 
     const profiles = getProfiles();
-    const days: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    const availability = Object.fromEntries(
-      days.map(d => [d, ['mon','tue','wed','thu','fri'].includes(d) ? { start: '09:00', end: '17:00' } : null])
-    ) as Record<DayOfWeek, { start: string; end: string } | null>;
+    const weekday = { start: '09:00', end: '17:00' };
+    const availability: Record<DayOfWeek, { start: string; end: string } | null> = {
+      mon: weekday,
+      tue: weekday,
+      wed: weekday,
+      thu: weekday,
+      fri: weekday,
+      sat: null,
+      sun: null,
+    };
 
     const existing = profiles.find(p => p.userId === currentUser.id);
     const nextProfile = {
@@ -114,7 +124,7 @@ export default function CleanerProfileEdit() {
       averageRating: existing?.averageRating ?? 0,
       totalReviews: existing?.totalReviews ?? 0,
       totalJobsCompleted: existing?.totalJobsCompleted ?? 0,
-      badges: existing?.badges ?? [],
+      badges: existing?.badges ?? ([] as CleanerBadge[]),
     };
 
     saveProfiles(

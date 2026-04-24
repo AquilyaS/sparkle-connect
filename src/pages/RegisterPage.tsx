@@ -105,11 +105,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setRole('cleaner')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  role === 'cleaner'
-                    ? 'border-teal-600 bg-teal-50 text-teal-700'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
+                className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all border-gray-200 text-gray-500 hover:border-gray-300"
               >
                 <Briefcase size={24} />
                 <span className="text-sm font-semibold">Offer Services</span>

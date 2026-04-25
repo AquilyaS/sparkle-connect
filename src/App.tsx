@@ -11,6 +11,8 @@ import Footer from './components/layout/Footer';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 import LandingPage from './pages/LandingPage';
+import CleanerLandingPage from './pages/CleanerLandingPage';
+import CleanerOnboardingPage from './pages/cleaner/CleanerOnboardingPage';
 import BrowsePage from './pages/BrowsePage';
 import CleanerProfilePage from './pages/CleanerProfilePage';
 import LoginPage from './pages/LoginPage';
@@ -66,6 +68,8 @@ function AppContent() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/cleaner-landing" element={<CleanerLandingPage />} />
+          <Route path="/cleaner/onboarding" element={<CleanerOnboardingPage />} />
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/cleaners/:cleanerId" element={<CleanerProfilePage />} />
           <Route path="/login" element={<LoginPage />} />

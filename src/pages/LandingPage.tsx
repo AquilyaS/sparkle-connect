@@ -122,7 +122,7 @@ export default function LandingPage() {
             </Link>
 
             <Link
-              to="/register?role=cleaner"
+              to="/cleaner-landing"
               className="group bg-white text-gray-900 rounded-2xl p-7 sm:p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 text-left"
             >
               <div className="w-14 h-14 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -334,9 +334,9 @@ export default function LandingPage() {
                 Browse Cleaners
               </Button>
             </Link>
-            <Link to="/register">
+            <Link to="/cleaner-landing">
               <Button size="lg" variant="secondary" className="border-white text-white hover:bg-teal-600 w-full sm:w-auto">
-                Join as a Cleaner
+                I'm a Cleaner
               </Button>
             </Link>
           </div>

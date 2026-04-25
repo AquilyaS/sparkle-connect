@@ -44,6 +44,7 @@ export interface CleanerProfile {
   totalReviews: number;
   totalJobsCompleted: number;
   badges: CleanerBadge[];
+  certifications?: string[];
 }
 
 export interface CleanerListing {
